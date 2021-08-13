@@ -9,20 +9,24 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class PostSerializer(serializers.ModelSerializer):
+class ProductSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(format='%d/%m/%Y %H:%M:%S', read_only=True)
 
     class Meta:
         model = Product
-        fields = ('id', 'title', 'year', 'category', 'created_at', 'description')
+        fields = '__all__'   #('id', 'title', 'price', 'category', 'created_at', 'comments')
 
     def to_representation(self, instance):
+        action = self.context.get('action')
         representation = super().to_representation(instance)
         representation['author'] = instance.author.email
         representation['category'] = CategorySerializer(instance.category).data
-        representation['images'] = PostImageSerializer(instance.images.all(),
-                                                       many=True,
-                                                       context=self.context).data
+        representation['images'] = ProductImageSerializer(instance.images.all(), many=True, context=self.context).data
+        if action == 'list':
+            representation['comments'] = instance.comments.count()
+        elif action == 'retrieve':
+            representation['comments'] = CommentSerializer(instance.comments.all(), many=True).data
+
         return representation
 
     def create(self, validated_data):
@@ -33,10 +37,10 @@ class PostSerializer(serializers.ModelSerializer):
         return product
 
 
-class PostImageSerializer(serializers.ModelSerializer):
+class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
-        fields = '__all__'
+        fields = ('image', )
 
     def _get_image_url(self, obj):
         if obj.image:
@@ -52,3 +56,28 @@ class PostImageSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['image'] = self._get_image_url(instance)
         return representation
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(source='author.email')
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        action = self.context.get('action')
+        if action == 'list':
+            representation['comments'] = instance.comments.count()
+        elif action == 'retrieve':
+            representation['comments'] = CommentSerializer(instance.comments.all(), many=True).data
+        return representation
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        comments = Comment.objects.create(
+            author=request.user,
+            **validated_data
+        )
+        return comments

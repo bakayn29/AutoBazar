@@ -4,8 +4,8 @@ from account.models import CustomUser
 
 
 class Category(models.Model):
-    slug = models.SlugField(primary_key=True, max_length=50)
-    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(primary_key=True, max_length=100)
+    name = models.CharField(max_length=150, unique=True)
 
     def __str__(self):
         return self.name
@@ -14,10 +14,10 @@ class Category(models.Model):
 class Product(models.Model):
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='products')
     title = models.CharField(max_length=155)
-    price = models.DecimalField(max_length=20)
+    price = models.DecimalField(max_digits=20, decimal_places=3)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
     description = models.TextField()
-    year = models.DecimalField(max_digits=10)
+    year = models.CharField(max_length=5)
     color = models.CharField(max_length=55)
     engine = models.FloatField()
     box = models.CharField(max_length=20)
@@ -26,7 +26,7 @@ class Product(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.description[:15] + '...'
+        return self.title
 
     class Meta:
         ordering = ('-created', )
@@ -40,6 +40,7 @@ class ProductImage(models.Model):
 class Comment(models.Model):
     comment = models.TextField()
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='comments')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='comments')
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
