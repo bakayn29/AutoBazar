@@ -10,17 +10,17 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(format='%d/%m/%Y %H:%M:%S', read_only=True)
+    created = serializers.DateTimeField(format='%d/%m/%Y %H:%M:%S', read_only=True)
 
     class Meta:
         model = Product
-        fields = '__all__'   #('id', 'title', 'price', 'category', 'created_at', 'comments')
+        fields = '__all__' #('id', 'title', 'price', 'category', 'created', 'comments')
 
     def to_representation(self, instance):
         action = self.context.get('action')
         representation = super().to_representation(instance)
         representation['author'] = instance.author.email
-        representation['category'] = CategorySerializer(instance.category).data
+        representation['category'] = instance.category.name
         representation['images'] = ProductImageSerializer(instance.images.all(), many=True, context=self.context).data
         if action == 'list':
             representation['comments'] = instance.comments.count()

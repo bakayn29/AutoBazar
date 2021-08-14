@@ -73,7 +73,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         q = request.query_params.get('q')  # request.query_params = request.GET
         queryset = self.get_queryset()
         queryset = queryset.filter(Q(title__icontains=q) |
-                                   Q(description__icontains=q))
+                                   Q(description__icontains=q) |
+                                   Q(year__icontains=q))
         serializer = ProductSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -94,3 +95,5 @@ class CommentViewSet(ModelViewSet):
         context = super().get_serializer_context()
         context['action'] = self.action
         return context
+
+
