@@ -23,8 +23,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from main.views import CategoryListView, ProductViewSet, ProductImageView, CommentViewSet
-
+from main.views import CategoryListView, ProductViewSet, ProductImageView, CommentViewSet, AddStarRatingView
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -60,4 +59,5 @@ urlpatterns = [
     path('v1/api/add-image/', ProductImageView.as_view()),
     path('v1/api/account/', include('account.urls')),
     path('v1/api/', include(router.urls)),
+    path('v1/api/rating/', AddStarRatingView.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

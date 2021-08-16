@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+   <title>Email Verification</title>
+   <style>
+
+       .card {
+           font-family: "Helvetica Neue";
+           text-align: center;
+           margin: auto;
+           width: 40%;
+       }
+
+       .btn {
+           padding: 7px;
+           margin-bottom: 10px;
+           background: #993CF3;
+           color: #fff;
+           border-radius: 5px;
+       }
+
+   </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-body">
+            <p class="card-text text-center"><strong>{{ text_detail }}</strong></p>
+            <p class="text-center">{{ email }}</p>
+            {{ activation_code }}
+            <a class="text-center verify-button" href="{{ domain }}{% url 'activate' email activation_code %}">
+                <button type="button" class="btn">Verify Account</button>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

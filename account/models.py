@@ -34,7 +34,7 @@ class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
     is_active = models.BooleanField(default=False)
-    activation_code = models.CharField(max_length=100,
+    activation_code = models.CharField(max_length=25,
                                        blank=True)
 
     objects = CustomUserManager()
@@ -48,19 +48,5 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
-
-    def create_activation_code(self):
-        """шифрования
-         1. hashlib.md5(self.email + str(self.id)).encode() -> hexdigets()
-         2. get_random_string(50, allowed_char=[abcABC123])
-         3. UUID
-         4. datetime.datetime.now() or time.time() + timestamp() 01.01.1970
-        """
-        import hashlib
-        string = self.email + str(self.id)
-        encode_string = string.encode()
-        md5_object = hashlib.md5(encode_string)
-        activation_code = md5_object.hexdigest()
-        self.activation_code = activation_code
 
 

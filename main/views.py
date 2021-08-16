@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from main.models import *
@@ -17,12 +18,6 @@ from main.serializers import *
 
 class MyPaginationClass(PageNumberPagination):
     page_size = 3
-
-    # def get_paginated_response(self, data):
-    #     for i in range(self.page_size):
-    #         description = data[i]['description']
-    #         data[i]['description'] = description[:10] + '...'
-    #     return super().get_paginated_response(data)
 
 
 class CategoryListView(generics.ListAPIView):
@@ -41,9 +36,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         context = super().get_serializer_context()
         context['action'] = self.action
         return context
-
-    # def get_serializer_context(self):
-    #     return {'request': self.request}
 
     def get_permissions(self):
         """Переопределим данный метод"""
@@ -96,4 +88,15 @@ class CommentViewSet(ModelViewSet):
         context['action'] = self.action
         return context
 
+
+class AddStarRatingView(APIView):
+    """Добавление рейтинга к продукту"""
+
+    def post(self, request):
+        serializer = CreateRatingSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            return Response(status=400)
+        return Response("Рейтинг добавлен ", status=status.HTTP_201_CREATED)
 

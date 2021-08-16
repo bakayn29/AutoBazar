@@ -14,19 +14,25 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = '__all__' #('id', 'title', 'price', 'category', 'created', 'comments')
+        fields = ('id', 'title', 'price', 'category', 'created', 'comments')
 
     def to_representation(self, instance):
         action = self.context.get('action')
         representation = super().to_representation(instance)
+
         representation['author'] = instance.author.email
         representation['category'] = instance.category.name
         representation['images'] = ProductImageSerializer(instance.images.all(), many=True, context=self.context).data
+
+        if action == 'list':
+            representation['rating'] = instance.ratings.count()
+        elif action == 'retrieve':
+            representation['rating'] = CreateRatingSerializer(instance.ratings.all(), many=True).data
+
         if action == 'list':
             representation['comments'] = instance.comments.count()
         elif action == 'retrieve':
             representation['comments'] = CommentSerializer(instance.comments.all(), many=True).data
-
         return representation
 
     def create(self, validated_data):
@@ -65,15 +71,6 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = '__all__'
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        action = self.context.get('action')
-        if action == 'list':
-            representation['comments'] = instance.comments.count()
-        elif action == 'retrieve':
-            representation['comments'] = CommentSerializer(instance.comments.all(), many=True).data
-        return representation
-
     def create(self, validated_data):
         request = self.context.get('request')
         comments = Comment.objects.create(
@@ -81,3 +78,19 @@ class CommentSerializer(serializers.ModelSerializer):
             **validated_data
         )
         return comments
+
+
+class CreateRatingSerializer(serializers.ModelSerializer):
+    """Добавление рейтинга пользователем"""
+    class Meta:
+        model = Rating
+        fields = ("star", "product")
+
+    def create(self, validated_data):
+        rating = Rating.objects.update_or_create(
+            product=validated_data.get('product', None),
+            defaults={'star': validated_data.get("star")}
+        )
+        return rating
+
+

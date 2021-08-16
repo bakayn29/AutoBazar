@@ -1,3 +1,5 @@
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from account.models import CustomUser
@@ -48,5 +50,39 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ('created', )
+
+
+class RatingStar(models.Model):
+    """Звезда рейтинга"""
+    value = models.SmallIntegerField("Значение", default=0)
+
+    def __str__(self):
+        return f'{self.value}'
+
+    class Meta:
+        verbose_name = "Звезда рейтинга"
+        verbose_name_plural = "Звезды рейтинга"
+        ordering = ["-value"]
+
+
+class Rating(models.Model):
+    star = models.ForeignKey(RatingStar, on_delete=models.CASCADE, verbose_name='Звезда', related_name='ratings')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Продукт', related_name='ratings')
+    email = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='ratings')
+
+    def __str__(self):
+        return f"{self.star} - {self.product}"
+
+    class Meta:
+        verbose_name = "Рейтинг"
+        verbose_name_plural = "Рейтинги"
+
+
+
+
+
+
+
+
 
     
