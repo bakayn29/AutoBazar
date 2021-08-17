@@ -41,6 +41,7 @@ schema_view = get_schema_view(
 router = DefaultRouter()
 router.register('products', ProductViewSet)
 router.register('comments', CommentViewSet)
+router.register('rating', AddStarRatingView)
 
 """
 create -> posts/ POST
@@ -59,5 +60,4 @@ urlpatterns = [
     path('v1/api/add-image/', ProductImageView.as_view()),
     path('v1/api/account/', include('account.urls')),
     path('v1/api/', include(router.urls)),
-    path('v1/api/rating/', AddStarRatingView.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

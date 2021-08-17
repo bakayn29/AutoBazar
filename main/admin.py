@@ -18,4 +18,5 @@ admin.site.register(Category)
 admin.site.register(Comment)
 admin.site.register(RatingStar)
 admin.site.register(Rating)
+# admin.site.register(Like)
 

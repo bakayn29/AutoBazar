@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework import generics, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -89,14 +89,24 @@ class CommentViewSet(ModelViewSet):
         return context
 
 
-class AddStarRatingView(APIView):
-    """Добавление рейтинга к продукту"""
+class AddStarRatingView(ModelViewSet):
+    queryset = Rating.objects.all()
+    serializer_class = RatingSerializer
 
-    def post(self, request):
-        serializer = CreateRatingSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        return queryset.order_by('author')
+
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update', 'destroy']:
+            permissions = [IsPostAuthor]
+        elif self.action in ['create']:
+            permissions = [IsAuthenticated]
         else:
-            return Response(status=400)
-        return Response("Рейтинг добавлен ", status=status.HTTP_201_CREATED)
+            permissions = [IsAdminUser]
+        return [permission() for permission in permissions]
+
+
+
+
 

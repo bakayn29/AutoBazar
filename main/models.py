@@ -68,7 +68,8 @@ class RatingStar(models.Model):
 class Rating(models.Model):
     star = models.ForeignKey(RatingStar, on_delete=models.CASCADE, verbose_name='Звезда', related_name='ratings')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Продукт', related_name='ratings')
-    email = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='ratings')
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='ratings')
+    created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.star} - {self.product}"
@@ -76,6 +77,11 @@ class Rating(models.Model):
     class Meta:
         verbose_name = "Рейтинг"
         verbose_name_plural = "Рейтинги"
+
+
+# class Like(models.Model):
+#     like_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='likes')
+#     like_product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='likes')
 
 
 

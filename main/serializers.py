@@ -10,11 +10,12 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(source='author.email')
     created = serializers.DateTimeField(format='%d/%m/%Y %H:%M:%S', read_only=True)
 
     class Meta:
         model = Product
-        fields = ('id', 'title', 'price', 'category', 'created', 'comments')
+        fields = '__all__' #('id', 'title', 'price', 'category', 'created', 'comments', 'likes')
 
     def to_representation(self, instance):
         action = self.context.get('action')
@@ -23,11 +24,12 @@ class ProductSerializer(serializers.ModelSerializer):
         representation['author'] = instance.author.email
         representation['category'] = instance.category.name
         representation['images'] = ProductImageSerializer(instance.images.all(), many=True, context=self.context).data
+        # representation['likes'] = instance.likes.count()
 
         if action == 'list':
             representation['rating'] = instance.ratings.count()
         elif action == 'retrieve':
-            representation['rating'] = CreateRatingSerializer(instance.ratings.all(), many=True).data
+            representation['rating'] = RatingSerializer(instance.ratings.all(), many=True).data
 
         if action == 'list':
             representation['comments'] = instance.comments.count()
@@ -80,17 +82,25 @@ class CommentSerializer(serializers.ModelSerializer):
         return comments
 
 
-class CreateRatingSerializer(serializers.ModelSerializer):
+class RatingSerializer(serializers.ModelSerializer):
     """Добавление рейтинга пользователем"""
+    author = serializers.ReadOnlyField(source='author.email')
+
     class Meta:
         model = Rating
-        fields = ("star", "product")
+        fields = '__all__'
 
     def create(self, validated_data):
-        rating = Rating.objects.update_or_create(
-            product=validated_data.get('product', None),
-            defaults={'star': validated_data.get("star")}
-        )
+        request = self.context.get('request')
+        email = request.user
+        product = validated_data.get('product')
+
+        if Rating.objects.filter(author=email, product=product):
+            rating = Rating.objects.get(author=email, product=product)
+            return rating
+
+        rating = Rating.objects.create(author=request.user, **validated_data)
         return rating
+
 
 
