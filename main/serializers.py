@@ -15,7 +15,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = '__all__' #('id', 'title', 'price', 'category', 'created', 'comments', 'likes')
+        fields = '__all__'  # ('id', 'title', 'price', 'category', 'created', 'comments', 'likes')
 
     def to_representation(self, instance):
         action = self.context.get('action')
@@ -24,17 +24,21 @@ class ProductSerializer(serializers.ModelSerializer):
         representation['author'] = instance.author.email
         representation['category'] = instance.category.name
         representation['images'] = ProductImageSerializer(instance.images.all(), many=True, context=self.context).data
-        # representation['likes'] = instance.likes.count()
+        representation['likes'] = instance.likes.count()
 
         if action == 'list':
             representation['rating'] = instance.ratings.count()
         elif action == 'retrieve':
             representation['rating'] = RatingSerializer(instance.ratings.all(), many=True).data
+            if representation['rating'] == []:
+                representation['rating'] = 'Рейтинги не добавлены'
 
         if action == 'list':
             representation['comments'] = instance.comments.count()
         elif action == 'retrieve':
             representation['comments'] = CommentSerializer(instance.comments.all(), many=True).data
+            if representation['comments'] == []:
+                representation['comments'] = 'Комментариев нет'
         return representation
 
     def create(self, validated_data):
@@ -101,6 +105,27 @@ class RatingSerializer(serializers.ModelSerializer):
 
         rating = Rating.objects.create(author=request.user, **validated_data)
         return rating
+
+
+class LikeSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='author.email')
+
+    class Meta:
+        model = Like
+        fields = '__all__'
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        product = validated_data.get('product')
+
+        if Like.objects.filter(user=user, product=product):
+            like = Like.objects.get(user=user, product=product)
+            return like
+
+        like = Like.objects.create(user=user, **validated_data)
+        return like
+
 
 
 

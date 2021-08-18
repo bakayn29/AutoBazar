@@ -1,15 +1,16 @@
 from datetime import timedelta
 
+from django.contrib.auth.models import PermissionsMixin
 from django.db.models import Q
-from django.shortcuts import render
 from django.utils import timezone
-from rest_framework import generics, viewsets, status
+from rest_framework import generics, viewsets, status, response
 from rest_framework.decorators import action
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from main.models import *
 from main.permissions import IsPostAuthor
@@ -17,7 +18,7 @@ from main.serializers import *
 
 
 class MyPaginationClass(PageNumberPagination):
-    page_size = 3
+    page_size = 2
 
 
 class CategoryListView(generics.ListAPIView):
@@ -65,10 +66,18 @@ class ProductViewSet(viewsets.ModelViewSet):
         q = request.query_params.get('q')  # request.query_params = request.GET
         queryset = self.get_queryset()
         queryset = queryset.filter(Q(title__icontains=q) |
-                                   Q(description__icontains=q) |
+                                   Q(category=q) |
                                    Q(year__icontains=q))
         serializer = ProductSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # @action(detail=False, methods=['get'])
+    # def favorite(self, request, pk=None):
+    #     queryset = self.get_queryset()
+    #     print(f"queryset = {queryset}")
+    #     serializer = ProductSerializer(queryset, many=True, context={'request': request})
+    #     print(f"serializer = {serializer}")
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ProductImageView(generics.ListCreateAPIView):
@@ -107,6 +116,18 @@ class AddStarRatingView(ModelViewSet):
         return [permission() for permission in permissions]
 
 
+class LikeViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin, GenericViewSet):
+    queryset = Like.objects.all()
+    serializer_class = LikeSerializer
+
+    def get_permissions(self):
+        if self.action in ['destroy']:
+            permissions = [IsPostAuthor]
+        elif self.action in ['create']:
+            permissions = [IsAuthenticated]
+        else:
+            permissions = [IsAdminUser]
+        return [permission() for permission in permissions]
 
 
 
