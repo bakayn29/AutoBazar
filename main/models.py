@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from account.models import CustomUser
+from auto_api import settings
 
 
 class Category(models.Model):
@@ -26,6 +27,7 @@ class Product(models.Model):
     drive_unit = models.CharField(max_length=20)
     steering_wheel = models.CharField(max_length=20)
     created = models.DateTimeField(auto_now_add=True)
+    # favourite = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='post_favourite', blank=True)
 
     def __str__(self):
         return self.title
@@ -80,18 +82,10 @@ class Rating(models.Model):
 
 
 class Like(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='likes')
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='likes')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='likes')
 
     def __str__(self):
         return f"{self.user} -- {self.product}"
 
 
-
-
-
-
-
-
-
-    

@@ -20,3 +20,4 @@ admin.site.register(RatingStar)
 admin.site.register(Rating)
 admin.site.register(Like)
 
+

@@ -23,8 +23,8 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from main.views import CategoryListView, ProductViewSet, ProductImageView, CommentViewSet, AddStarRatingView, \
-    LikeViewSet
+from main.views import CategoryListView, ProductViewSet, CommentViewSet, AddStarRatingView, LikeViewSet, \
+    ProductImageView
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -59,7 +59,7 @@ urlpatterns = [
     path('v1/api/docs/', schema_view.with_ui()),
     path('api-auth/', include('rest_framework.urls')),
     path('v1/api/categories/', CategoryListView.as_view()),
-    path('v1/api/add-image/', ProductImageView.as_view()),
     path('v1/api/account/', include('account.urls')),
+    path('v1/api/add-image/', ProductImageView.as_view()),
     path('v1/api/', include(router.urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

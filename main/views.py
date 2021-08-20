@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-from django.contrib.auth.models import PermissionsMixin
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import generics, viewsets, status, response
@@ -18,7 +17,7 @@ from main.serializers import *
 
 
 class MyPaginationClass(PageNumberPagination):
-    page_size = 2
+    page_size = 3
 
 
 class CategoryListView(generics.ListAPIView):
@@ -71,14 +70,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = ProductSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # @action(detail=False, methods=['get'])
-    # def favorite(self, request, pk=None):
-    #     queryset = self.get_queryset()
-    #     print(f"queryset = {queryset}")
-    #     serializer = ProductSerializer(queryset, many=True, context={'request': request})
-    #     print(f"serializer = {serializer}")
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class ProductImageView(generics.ListCreateAPIView):
     queryset = ProductImage.objects.all()
@@ -120,14 +111,19 @@ class LikeViewSet(CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveM
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
 
+    @action(detail=False, methods=['get'])
+    def favorite(self, request, pk=None):
+        queryset = self.get_queryset()
+        likes = queryset.filter(author=request.user)
+        product_list = [like.product for like in likes]
+        serializer = ProductSerializer(product_list, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def get_permissions(self):
         if self.action in ['destroy']:
             permissions = [IsPostAuthor]
         elif self.action in ['create']:
             permissions = [IsAuthenticated]
         else:
-            permissions = [IsAdminUser]
+            permissions = [IsPostAuthor]
         return [permission() for permission in permissions]
-
-
-

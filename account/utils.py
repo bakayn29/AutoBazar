@@ -16,7 +16,7 @@ def send_activation_code(email, activation_code, status=None):
         send_mail(
             'Активируйте аккаунт',
             message,
-            'stackoverflow_admin@gmail.com',
+            'autobazar_admin@gmail.com',
             [email, ],
             html_message=msg_html,
             fail_silently=False
@@ -25,7 +25,7 @@ def send_activation_code(email, activation_code, status=None):
         send_mail(
             'Reset your password',
             f"Код активации: {activation_code}",
-            'stackoverflow_admin@gmail.com',
+            'autobazar_admin@gmail.com',
             [email, ],
             fail_silently=False
         )

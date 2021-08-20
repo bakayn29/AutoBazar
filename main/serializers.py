@@ -9,6 +9,12 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ('image', )
+
+
 class ProductSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.email')
     created = serializers.DateTimeField(format='%d/%m/%Y %H:%M:%S', read_only=True)
@@ -48,26 +54,18 @@ class ProductSerializer(serializers.ModelSerializer):
         product = Product.objects.create(**validated_data)
         return product
 
-
-class ProductImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductImage
-        fields = ('image', )
-
-    def _get_image_url(self, obj):
-        if obj.image:
-            url = obj.image.url
-            request = self.context.get('request')
-            if request is not None:
-                url = request.build_absolute_uri(url)
-        else:
-            url = ''
-        return url
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['image'] = self._get_image_url(instance)
-        return representation
+    def update(self, instance, validated_data):
+        request = self.context.get('request')
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        images_data = request.FILES
+        instance.images.all().delete()
+        for image in images_data.getlist('images'):
+            ProductImage.objects.create(
+                image=image,
+                product=instance
+            )
+        return instance
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -108,7 +106,7 @@ class RatingSerializer(serializers.ModelSerializer):
 
 
 class LikeSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='author.email')
+    author = serializers.ReadOnlyField(source='author.email')
 
     class Meta:
         model = Like
@@ -116,15 +114,16 @@ class LikeSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get('request')
-        user = request.user
+        author = request.user
         product = validated_data.get('product')
 
-        if Like.objects.filter(user=user, product=product):
-            like = Like.objects.get(user=user, product=product)
+        if Like.objects.filter(author=author, product=product):
+            like = Like.objects.get(author=author, product=product)
             return like
 
-        like = Like.objects.create(user=user, **validated_data)
+        like = Like.objects.create(author=author, **validated_data)
         return like
+
 
 
 
