@@ -60,7 +60,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = ProductSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])  # Работает только с ViewSet!!!  router builds path posts/search/?q=paris
+    @action(detail=False, methods=['get'])  # Работает только с ViewSet!!!  router builds path posts/search/?q=toyota
     def search(self, request, pk=None):
         q = request.query_params.get('q')  # request.query_params = request.GET
         queryset = self.get_queryset()

@@ -56,7 +56,7 @@ class Comment(models.Model):
 
 class RatingStar(models.Model):
     """Звезда рейтинга"""
-    value = models.SmallIntegerField("Значение", default=0)
+    value = models.SmallIntegerField(default=0)
 
     def __str__(self):
         return f'{self.value}'
@@ -86,6 +86,6 @@ class Like(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='likes')
 
     def __str__(self):
-        return f"{self.user} -- {self.product}"
+        return f"{self.author} -- {self.product}"
 
 
